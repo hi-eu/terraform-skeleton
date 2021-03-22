@@ -11,7 +11,7 @@ resource "aws_s3_bucket" "terraform-state-storage-s3" {
   }
   tags = {
     Name    = "S3 Remote Terraform State Store"
-    Project = "${var.tf_project}"
+    Project = var.tf_project
   }
 }
 
@@ -36,6 +36,6 @@ resource "aws_dynamodb_table" "dynamodb-terraform-state-lock" {
 
   tags = {
     Name    = "DynamoDB Terraform State Lock Table"
-    Project = "${var.tf_project}"
+    Project = var.tf_project
   }
 }
