@@ -22,11 +22,7 @@ init: ## Initializes the terraform remote state backend and pulls the correct pr
 	@if [ -z $(PROJECT) ]; then echo "PROJECT was not set, please export PROJECT with your project name" ; exit 10 ; fi
 	@if [ -z $(AWS_REGION) ]; then echo "AWS_REGION was not set, please export AWS_REGION with your region on aws" ; exit 10 ; fi
 	@rm -rf .terraform/*.tf*
-	@terraform init \
-        -backend-config="bucket=${s3_bucket}" \
-        -backend-config="key=${key}.tfstate" \
-        -backend-config="dynamodb_table=${dynamodb_table}" \
-        -backend-config="region=${region}"
+	@terraform init
 
 update: ## Gets any module updates
 	@terraform get -update=true &>/dev/null

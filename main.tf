@@ -105,6 +105,7 @@ module "ecr" {
 resource "random_password" "pgadmin" {
   length = 24
 }
+
 module "aws_rds_postgres" {
   source = "git::git@github.com:hieunc-edu/terraform-aws-rds.git"
 
@@ -121,7 +122,7 @@ module "aws_rds_postgres" {
   port                   = var.pgrds_port
   username               = var.pgrds_username
   password               = random_password.pgadmin.result
-  create_random_password = var.pgrds_create_db_subnet_group
+  create_random_password = var.pgrds_create_random_password
   random_password_length = var.pgrds_random_password_length
   vpc_security_group_ids = [module.security_group.this_security_group_id]
   subnet_ids             = module.vpc.database_subnets
