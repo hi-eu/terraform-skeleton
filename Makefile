@@ -9,7 +9,7 @@ help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 stateinit: ## Initializes the bucket and dynamodb for state
-	@if [ -z $(PROJECT) ]; then echo "PROJECT was not set" ; exit 10 ; fi
+	@if [ -z $(PROJECT) ]; then echo "PROJECT was not set, please export PROJECT with your project name" ; exit 10 ; fi
 	@terraform init
 
 stateplan: stateinit ## Shows the plan
@@ -19,7 +19,8 @@ stateapply: stateinit
 	@terraform apply -input=true -refresh=true -var 'tf_project=${PROJECT}'
 
 init: ## Initializes the terraform remote state backend and pulls the correct projects state.
-	@if [ -z $(PROJECT) ]; then echo "PROJECT was not set" ; exit 10 ; fi
+	@if [ -z $(PROJECT) ]; then echo "PROJECT was not set, please export PROJECT with your project name" ; exit 10 ; fi
+	@if [ -z $(AWS_REGION) ]; then echo "AWS_REGION was not set, please export AWS_REGION with your region on aws" ; exit 10 ; fi
 	@rm -rf .terraform/*.tf*
 	@terraform init \
         -backend-config="bucket=${s3_bucket}" \
