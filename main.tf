@@ -181,7 +181,7 @@ resource "aws_ssm_parameter" "pg_master_password" {
   count = var.enabled_ssm_parameter_store ? 1 : 0
 
   name  = "/rds/db/${var.pgrds_identifier}/superuser/master-password"
-  value = module.aws_rds_postgres.this_db_instance_password
+  value = module.aws_rds_postgres.this_db_master_password
   type  = "SecureString"
 
   overwrite = true
