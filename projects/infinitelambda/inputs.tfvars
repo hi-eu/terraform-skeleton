@@ -71,3 +71,12 @@ pgrds_parameters = [
     value = "utf8"
   }
 ]
+
+#------------------------------------------------------------------------------
+# Jenkins
+#------------------------------------------------------------------------------
+
+jenkins_domain_name_zone_id = "Z03002861KY7MIVLYXFQJ"
+jenkins_alias_name = "jenkins-controler"
+jenkins_name_prefix = "jenkins"
+jenkins_domain_name = "hieunc.net"

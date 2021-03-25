@@ -266,3 +266,19 @@ variable "label_value_case" {
 variable "tfstate_force_destroy" {
   type = bool
 }
+
+variable "jenkins_domain_name_zone_id" {
+  type = string
+}
+
+variable "jenkins_alias_name" {
+  type = string
+}
+
+variable "jenkins_name_prefix" {
+  type = string
+}
+
+variable "jenkins_domain_name" {
+  type = string
+}

@@ -189,6 +189,53 @@ resource "aws_ssm_parameter" "pg_master_password" {
 }
 
 #------------------------------------------------------------------------------
-# EC2 instances
+# Jenkins
 #------------------------------------------------------------------------------
 
+module myip {
+  source  = "4ops/myip/http"
+  version = "1.0.0"
+}
+
+// Bring your own ACM cert for the Application Load Balancer
+
+module "acm" {
+  source  = "terraform-aws-modules/acm/aws"
+  version = "~> v2.0"
+
+  domain_name = "${var.jenkins_alias_name}.${var.jenkins_domain_name}"
+  zone_id     = var.jenkins_domain_name_zone_id
+
+  tags = merge(
+    {
+      Service = "acm"
+    },
+    local.tags
+  )
+}
+
+resource "aws_kms_key" "efs_kms_key" {
+  description = "KMS key used to encrypt Jenkins EFS volume"
+}
+
+module "jenkins" {
+  source                        = "git::git@github.com:hieunc-edu/jenkins-aws-fargate.git"
+  alb_subnet_ids                = module.vpc.public_subnets
+  efs_subnet_ids                = module.vpc.private_subnets
+  vpc_id                        = module.vpc.vpc_id
+  name_prefix                   = var.jenkins_name_prefix
+  efs_kms_key_arn               = aws_kms_key.efs_kms_key.arn
+  jenkins_controller_subnet_ids = module.vpc.private_subnets
+  alb_ingress_allow_cidrs       = ["${module.myip.address}/32"]
+  alb_acm_certificate_arn       = module.acm.this_acm_certificate_arn
+  route53_create_alias          = true
+  route53_alias_name            = var.jenkins_alias_name
+  route53_zone_id               = var.jenkins_domain_name_zone_id
+  tags = merge(
+    {
+      Service : "ecs"
+      Solution : "jenkins"
+    },
+    local.tags
+  )
+}
