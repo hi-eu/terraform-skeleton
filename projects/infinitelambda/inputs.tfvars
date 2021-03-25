@@ -10,9 +10,9 @@ environment = "demo"
 # Tfstate
 #------------------------------------------------------------------------------
 
-tfstate_enabled = true
-tfstate_stage   = "ready"
-tfstate_name    = "terraform-tfstate-backend"
+tfstate_enabled       = true
+tfstate_stage         = "ready"
+tfstate_name          = "terraform-tfstate-backend"
 tfstate_force_destroy = false
 
 #------------------------------------------------------------------------------
@@ -71,4 +71,3 @@ pgrds_parameters = [
     value = "utf8"
   }
 ]
-
