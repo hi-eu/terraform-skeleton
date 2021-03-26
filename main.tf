@@ -29,7 +29,6 @@ locals {
 # VPC
 #------------------------------------------------------------------------------
 
-
 module "vpc" {
   source = "git::git@github.com:hieunc-edu/terraform-aws-vpc.git"
 
@@ -45,6 +44,7 @@ module "vpc" {
   single_nat_gateway           = var.single_nat_gateway
   one_nat_gateway_per_az       = var.one_nat_gateway_per_az
   enable_vpn_gateway           = var.enable_vpn_gateway
+  enable_dns_hostnames         = var.enable_dns_hostnames
 
   tags = merge(
     local.tags,
@@ -191,6 +191,20 @@ resource "aws_ssm_parameter" "pg_master_password" {
 #------------------------------------------------------------------------------
 # Jenkins
 #------------------------------------------------------------------------------
+
+resource "random_password" "jenkins" {
+  length = 24
+}
+
+resource "aws_ssm_parameter" "jenkins_password" {
+  count = var.enabled_ssm_parameter_store ? 1 : 0
+
+  name  = "jenkins-pwd"
+  value = random_password.jenkins.result
+  type  = "SecureString"
+
+  overwrite = true
+}
 
 module myip {
   source  = "4ops/myip/http"

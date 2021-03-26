@@ -20,6 +20,10 @@ jenkins:
                 - "Overall/Administer:authenticated"
     crumbIssuer: "standard"
     slaveAgentPort: 50000
+    simple-theme-plugin:
+        elements:
+        - cssUrl:
+            url: "https://cdn.rawgit.com/afonsof/jenkins-material-theme/gh-pages/dist/material-indigo.css"
     clouds:
         - ecs:
               allowedOverrides: "inheritFrom,label,memory,cpu,image"

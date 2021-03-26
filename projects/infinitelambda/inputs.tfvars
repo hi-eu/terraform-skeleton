@@ -28,6 +28,7 @@ single_nat_gateway           = false
 one_nat_gateway_per_az       = true
 enable_vpn_gateway           = false
 create_database_subnet_group = true
+enable_dns_hostnames         = true
 
 #------------------------------------------------------------------------------
 # ECR

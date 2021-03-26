@@ -1,4 +1,4 @@
-FROM jenkins/jenkins:2.249.3-lts
+FROM jenkins/jenkins:2.277.1-lts-slim
 ENV CASC_JENKINS_CONFIG /usr/share/jenkins/ref/jenkins.yaml
 COPY files/jenkins.yaml /usr/share/jenkins/ref/jenkins.yaml
 RUN echo 2.0 > /usr/share/jenkins/ref/jenkins.install.UpgradeWizard.state
