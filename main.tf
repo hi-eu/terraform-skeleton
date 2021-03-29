@@ -21,8 +21,19 @@ locals {
     Terraform   = "true"
     Owner       = "hieunc"
     Environment = var.environment
-    Project     = var.tf_project
+    Project     = var.project
   }
+  jenkins_user_data = <<EOF
+#!/bin/bash
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+echo \
+  "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+sudo apt update
+sudo apt install -y default-jre git apt-transport-https ca-certificates curl software-properties-common docker-ce docker-ce-cli containerd.io
+sudo usermod -aG docker ubuntu
+EOF
 }
 
 #------------------------------------------------------------------------------
@@ -32,7 +43,7 @@ locals {
 module "vpc" {
   source = "git::git@github.com:hieunc-edu/terraform-aws-vpc.git"
 
-  name = "${var.tf_project}-vpc"
+  name = "${var.project}-vpc"
   cidr = var.cidr
 
   azs                          = ["${var.aws_region}a", "${var.aws_region}b", "${var.aws_region}c"]
@@ -158,6 +169,16 @@ resource "aws_ssm_parameter" "pg_endpoint" {
   overwrite = true
 }
 
+resource "aws_ssm_parameter" "pg_host" {
+  count = var.enabled_ssm_parameter_store ? 1 : 0
+
+  name  = "/rds/db/${var.pgrds_identifier}/host"
+  value = module.aws_rds_postgres.this_db_instance_address
+  type  = "String"
+
+  overwrite = true
+}
+
 resource "aws_ssm_parameter" "pg_username" {
   count = var.enabled_ssm_parameter_store ? 1 : 0
 
@@ -217,12 +238,13 @@ module "acm" {
   source  = "terraform-aws-modules/acm/aws"
   version = "~> v2.0"
 
-  domain_name = "${var.jenkins_alias_name}.${var.jenkins_domain_name}"
-  zone_id     = var.jenkins_domain_name_zone_id
+  domain_name = "${var.jenkins_cname}.${var.domain_name}"
+  zone_id     = var.domain_zone_id
 
   tags = merge(
     {
-      Service = "acm"
+      Service  = "acm"
+      Solution = "jenkins"
     },
     local.tags
   )
@@ -243,13 +265,71 @@ module "jenkins" {
   alb_ingress_allow_cidrs       = ["${module.myip.address}/32"]
   alb_acm_certificate_arn       = module.acm.this_acm_certificate_arn
   route53_create_alias          = true
-  route53_alias_name            = var.jenkins_alias_name
-  route53_zone_id               = var.jenkins_domain_name_zone_id
+  route53_alias_name            = var.jenkins_cname
+  route53_zone_id               = var.domain_zone_id
   tags = merge(
     {
-      Service : "ecs"
+      Service : "fargate"
       Solution : "jenkins"
     },
     local.tags
   )
+}
+
+module "ec2_cluster" {
+  source  = "terraform-aws-modules/ec2-instance/aws"
+  version = "~> 2.0"
+
+  name           = "JenkinsSlave"
+  instance_count = 1
+
+  ami              = "ami-01581ffba3821cdf3"
+  instance_type    = "t2.micro"
+  key_name         = "bastion"
+  monitoring       = false
+  subnet_ids       = module.vpc.private_subnets
+  user_data_base64 = base64encode(local.jenkins_user_data)
+  tags = {
+    Terraform   = "true"
+    Environment = "dev"
+  }
+}
+
+#------------------------------------------------------------------------------
+# WWW S3 CDN
+#------------------------------------------------------------------------------
+module "acm_statics" {
+  source  = "terraform-aws-modules/acm/aws"
+  version = "~> v2.0"
+  providers = {
+    aws = aws.us-east-1
+  }
+
+  domain_name = "${var.statics_cname}.${var.domain_name}"
+  zone_id     = var.domain_zone_id
+
+  tags = merge(
+    {
+      Service  = "acm"
+      solution = "stattics"
+    },
+    local.tags
+  )
+}
+
+module "statics_cdn" {
+  source = "git::git@github.com:hieunc-edu/terraform-aws-cloudfront-s3-cdn"
+
+  namespace                = var.project
+  name                     = var.cdn_bucket_name
+  aliases                  = ["${var.statics_cname}.${var.domain_name}"]
+  parent_zone_id           = var.domain_zone_id
+  dns_alias_enabled        = true
+  use_regional_s3_endpoint = true
+  origin_force_destroy     = true
+  cors_allowed_headers     = ["*"]
+  cors_allowed_methods     = ["GET", "HEAD", "PUT"]
+  cors_allowed_origins     = ["*.${var.domain_name}"]
+  cors_expose_headers      = ["ETag"]
+  acm_certificate_arn      = module.acm_statics.this_acm_certificate_arn
 }

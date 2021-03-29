@@ -4,13 +4,13 @@
 variable "aws_region" {
   description = "The AWS region to work in"
 
-  type        = string
+  type = string
 }
 
-variable "tf_project" {
+variable "project" {
   description = "The name of the project folder that inputs.tfvars is in"
 
-  type        = string
+  type = string
 }
 
 variable "environment" {
@@ -65,8 +65,8 @@ variable "ecr_repositories" {
 variable "ecr_namespace" {
   description = "Namespace, which could be your organization name or abbreviation, e.g. 'eg' or 'cp'"
 
-  type        = string
-  default     = null
+  type    = string
+  default = null
 
 }
 
@@ -76,22 +76,22 @@ variable "ecr_delimiter" {
     Defaults to `-` (hyphen). Set to `""` to use no delimiter at all.
   EOT
 
-  type        = string
-  default     = "-"
+  type    = string
+  default = "-"
 }
 
 variable "ecr_principals_readonly_access" {
   description = "Principal ARNs to provide with readonly access to the ECR"
 
-  type        = list(string)
-  default     = []
+  type    = list(string)
+  default = []
 }
 
 variable "ecr_principals_full_access" {
   description = "Principal ARNs to provide with full access to the ECR"
 
-  type        = list(string)
-  default     = []
+  type    = list(string)
+  default = []
 }
 
 variable "enabled_ssm_parameter_store" {
@@ -162,12 +162,6 @@ variable "tfstate_namespace" {
   type        = string
   default     = null
   description = "Namespace, which could be your organization name or abbreviation, e.g. 'eg' or 'cp'"
-}
-
-variable "tfstate_stage" {
-  type        = string
-  default     = null
-  description = "Stage, e.g. 'prod', 'staging', 'dev', OR 'source', 'build', 'test', 'deploy', 'release'"
 }
 
 variable "tfstate_name" {
@@ -271,11 +265,11 @@ variable "tfstate_force_destroy" {
   type = bool
 }
 
-variable "jenkins_domain_name_zone_id" {
+variable "domain_zone_id" {
   type = string
 }
 
-variable "jenkins_alias_name" {
+variable "jenkins_cname" {
   type = string
 }
 
@@ -283,6 +277,15 @@ variable "jenkins_name_prefix" {
   type = string
 }
 
-variable "jenkins_domain_name" {
+variable "domain_name" {
+  type = string
+}
+
+variable "statics_cname" {
+  type    = string
+  default = "www"
+}
+
+variable "cdn_bucket_name" {
   type = string
 }

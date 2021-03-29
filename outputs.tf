@@ -16,27 +16,19 @@ output "dynamodb_table_id" {
   description = "DynamoDB table ID"
 }
 
-//output "jenkins_master_alb_id" {
-//  description = "Jenkins Master Application Load Balancer ID"
-//  value       = module.jenkins.aws_lb_lb_id
-//}
-//
-//output "jenkins_master_alb_arn" {
-//  description = "Jenkins Master Application Load Balancer ARN"
-//  value       = module.jenkins.aws_lb_lb_arn
-//}
-//
-//output "jenkins_master_alb_arn_suffix" {
-//  description = "Jenkins Master Application Load Balancer ARN Suffix"
-//  value       = module.jenkins.aws_lb_lb_arn_suffix
-//}
-//
 output "jenkins_master_alb_dns_name" {
   description = "Jenkins Master Application Load Balancer DNS Name"
   value       = module.jenkins.lb_dns_name
 }
-//
-//output "jenkins_master_alb_zone_id" {
-//  description = "Jenkins Master Application Load Balancer Zone ID"
-//  value       = module.jenkins.aws_lb_lb_zone_id
-//}
+
+output "statics_cname" {
+  value = module.statics_cdn.aliases
+}
+
+output "cf_domain" {
+  value = module.statics_cdn.cf_domain_name
+}
+
+output "Jenkins_EC2_Agent" {
+  value = module.ec2_cluster.private_ip
+}

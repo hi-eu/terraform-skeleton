@@ -3,9 +3,8 @@ module "this" {
   version = "0.24.1" # requires Terraform >= 0.13.0
 
   enabled             = var.tfstate_enabled
-  namespace           = var.tf_project
+  namespace           = var.project
   environment         = var.environment
-  stage               = var.tfstate_stage
   name                = var.tfstate_name
   delimiter           = var.tfstate_delimiter
   attributes          = var.tfstate_attributes
@@ -62,6 +61,6 @@ module "tfstate_backend" {
 
   force_destroy                      = var.tfstate_force_destroy
   terraform_backend_config_file_path = "."
-  terraform_backend_config_file_name = "${var.tf_project}-${var.environment}-backend.tf"
+  terraform_backend_config_file_name = "${var.project}-${var.environment}-backend.tf"
   context                            = module.this.context
 }
