@@ -25,13 +25,13 @@ locals {
   }
   jenkins_user_data = <<EOF
 #!/bin/bash
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-echo \
-  "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
-  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt update
-sudo apt install -y default-jre git apt-transport-https ca-certificates curl software-properties-common docker-ce docker-ce-cli containerd.io
-sudo usermod -aG docker ubuntu
+sudo amazon-linux-extras enable corretto8
+sudo yum install java-1.8.0-amazon-corretto
+sudo amazon-linux-extras install docker
+sudo service docker start
+sudo usermod -a -G docker ec2-user
+sudo chkconfig docker on
+sudo yum install -y git
 EOF
 }
 
@@ -93,6 +93,7 @@ module "ssh_security_group" {
   vpc_id              = module.vpc.vpc_id
   ingress_cidr_blocks = module.vpc.private_subnets_cidr_blocks
   ingress_rules       = ["ssh-tcp"]
+  egress_rules        = ["all-all"]
 
   tags = merge(
     local.tags,
@@ -311,12 +312,12 @@ module "ec2_JenkinsSlave" {
   name           = "JenkinsSlave"
   instance_count = 1
 
-  ami              = "ami-01581ffba3821cdf3"
-  instance_type    = "t2.micro"
-  key_name         = "bastion"
-  monitoring       = false
-  subnet_ids       = module.vpc.private_subnets
-  user_data_base64 = base64encode(local.jenkins_user_data)
+  ami                    = "ami-0ba0ce0c11eb723a1"
+  instance_type          = "t2.micro"
+  key_name               = "bastion"
+  monitoring             = false
+  subnet_ids             = module.vpc.private_subnets
+  user_data_base64       = base64encode(local.jenkins_user_data)
   vpc_security_group_ids = [module.ssh_security_group.this_security_group_id]
   tags = {
     Terraform   = "true"
