@@ -13,7 +13,6 @@ domain_name = "hieunc.net"
 #------------------------------------------------------------------------------
 
 tfstate_enabled       = true
-tfstate_stage         = "ready"
 tfstate_name          = "terraform-tfstate-backend"
 tfstate_force_destroy = false
 

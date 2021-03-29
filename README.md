@@ -71,16 +71,3 @@ The statefile.tf file is for creating the resources needed to create the S3 buck
 ### Errata
 
 The README.md and LICENSE file are self explanitory.
-
-## Initialize the Statefile
-
-In order to avoid the chicken and the egg issue with terraform, we create the S3 storage and DynamoDB using a local
-statefile, and then once the resources exist we transfer the statefile to S3 bucket.
-
-    make stateinit
-    make stateplan
-    make stateapply
-
-Uncomment the S3 backend in backends.tf file and then run the following command:
-
-    make init

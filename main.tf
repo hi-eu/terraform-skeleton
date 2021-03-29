@@ -29,7 +29,6 @@ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o 
 echo \
   "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
   $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-
 sudo apt update
 sudo apt install -y default-jre git apt-transport-https ca-certificates curl software-properties-common docker-ce docker-ce-cli containerd.io
 sudo usermod -aG docker ubuntu
@@ -68,7 +67,7 @@ module "vpc" {
 #------------------------------------------------------------------------------
 # Security Group
 #------------------------------------------------------------------------------
-module "security_group" {
+module "postgresql_security_group" {
   source = "git::git@github.com:hieunc-edu/terraform-aws-security-group.git"
 
   name                = "postgre-sgr"
@@ -81,6 +80,25 @@ module "security_group" {
     local.tags,
     {
       Service = "secgr"
+      Rule    = "allow connect postgresql database"
+    }
+  )
+}
+
+module "ssh_security_group" {
+  source = "git::git@github.com:hieunc-edu/terraform-aws-security-group.git"
+
+  name                = "ssh-sgr"
+  description         = "ssh security group"
+  vpc_id              = module.vpc.vpc_id
+  ingress_cidr_blocks = module.vpc.private_subnets_cidr_blocks
+  ingress_rules       = ["ssh-tcp"]
+
+  tags = merge(
+    local.tags,
+    {
+      Service = "secgr"
+      Rule    = "allow ssh"
     }
   )
 }
@@ -135,7 +153,7 @@ module "aws_rds_postgres" {
   password               = random_password.pgadmin.result
   create_random_password = var.pgrds_create_random_password
   random_password_length = var.pgrds_random_password_length
-  vpc_security_group_ids = [module.security_group.this_security_group_id]
+  vpc_security_group_ids = [module.postgresql_security_group.this_security_group_id]
   subnet_ids             = module.vpc.database_subnets
   parameters             = var.pgrds_parameters
   create_db_subnet_group = var.pgrds_create_db_subnet_group
@@ -275,8 +293,18 @@ module "jenkins" {
     local.tags
   )
 }
+resource "tls_private_key" "this" {
+  algorithm = "RSA"
+}
 
-module "ec2_cluster" {
+module "key_pair" {
+  source = "terraform-aws-modules/key-pair/aws"
+
+  key_name   = "bastion"
+  public_key = tls_private_key.this.public_key_openssh
+}
+
+module "ec2_JenkinsSlave" {
   source  = "terraform-aws-modules/ec2-instance/aws"
   version = "~> 2.0"
 
@@ -289,6 +317,7 @@ module "ec2_cluster" {
   monitoring       = false
   subnet_ids       = module.vpc.private_subnets
   user_data_base64 = base64encode(local.jenkins_user_data)
+  vpc_security_group_ids = [module.ssh_security_group.this_security_group_id]
   tags = {
     Terraform   = "true"
     Environment = "dev"

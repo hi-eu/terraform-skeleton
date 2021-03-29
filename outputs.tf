@@ -30,5 +30,9 @@ output "cf_domain" {
 }
 
 output "Jenkins_EC2_Agent" {
-  value = module.ec2_cluster.private_ip
+  value = module.ec2_JenkinsSlave.private_ip
+}
+
+output "Jenkins_agent_ssh_key" {
+  value = tls_private_key.this.private_key_pem
 }
