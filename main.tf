@@ -25,13 +25,12 @@ locals {
   }
   jenkins_user_data = <<EOF
 #!/bin/bash
-sudo amazon-linux-extras enable corretto8
-sudo yum install java-1.8.0-amazon-corretto
-sudo amazon-linux-extras install docker
+sudo amazon-linux-extras install docker java-openjdk11
 sudo service docker start
 sudo usermod -a -G docker ec2-user
 sudo chkconfig docker on
 sudo yum install -y git
+java -version
 EOF
 }
 
